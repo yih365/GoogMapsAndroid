@@ -75,10 +75,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     override fun onMapReady(googleMap: GoogleMap) {
         this.map = googleMap
 
-        // Add a marker in Sydney and move the camera
-//        val sydney = defaultLocation
-//        mMap.addMarker(MarkerOptions().position(sydney).title("Marker in Sydney"))
-
         // Add a marker at UCSD campus
 //         val ucsdCampus = LatLng(32.88, -117.23)
 //         mMap.addMarker(MarkerOptions().position(ucsdCampus).title("Marker in my location"))
@@ -167,26 +163,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             else -> super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         }
         updateLocationUI()
-    }
-
-    /**
-     * Prompts the user to select the current place from a list of likely places, and shows the
-     * current place on the map - provided the user has granted location permission.
-     */
-    @SuppressLint("MissingPermission")
-    private fun showCurrentPlace() {
-        if (map == null) return
-        if (locationPermissionGranted) {
-            // Use fields to define the data types to return.
-            val placeFields = listOf(Place.Field.NAME, Place.Field.ADDRESS, Place.Field.LAT_LNG)
-
-            // Use the builder to create a FindCurrentPlaceRequest.
-            val request = FindCurrentPlaceRequest.newInstance(placeFields)
-
-            // Get the likely places - that is, the businesses and other points of interest that
-            // are the best match for the device's current location.
-            val placeResult = placesClient.findCurrentPlace(request)
-        }
     }
 
     /**
