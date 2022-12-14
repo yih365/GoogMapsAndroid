@@ -75,6 +75,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     override fun onMapReady(googleMap: GoogleMap) {
         this.map = googleMap
 
+        map!!.uiSettings.isZoomControlsEnabled = true
+        map!!.uiSettings.isZoomGesturesEnabled = true
         // Add a marker at UCSD campus
 //         val ucsdCampus = LatLng(32.88, -117.23)
 //         mMap.addMarker(MarkerOptions().position(ucsdCampus).title("Marker in my location"))
@@ -105,7 +107,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                 locationResult.addOnCompleteListener(this) { task ->
                     if (task.isSuccessful) {
                         // Set the map's camera position to the current location of the device.
-                        var currentLocation = task.result
+                        val currentLocation = task.result
                         if (currentLocation != null) {
                             map?.moveCamera(CameraUpdateFactory.newLatLngZoom(
                                 LatLng(currentLocation.latitude,
