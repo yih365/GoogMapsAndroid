@@ -1,31 +1,34 @@
 package com.example.testmaps
 
-import com.example.testmaps.databinding.ActivityMapsBinding
 import android.Manifest
 import android.annotation.SuppressLint
+import android.app.AlertDialog
+import android.content.DialogInterface
 import android.content.pm.PackageManager
-import android.location.Location
 import android.os.Bundle
 import android.util.Log
+import android.view.LayoutInflater
+import android.view.View
+import android.widget.EditText
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.example.testmaps.databinding.ActivityMapsBinding
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.libraries.places.api.Places
-import com.google.android.libraries.places.api.model.Place
-import com.google.android.libraries.places.api.net.FindCurrentPlaceRequest
 import com.google.android.libraries.places.api.net.PlacesClient
 
-class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
+
+class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapLongClickListener {
 
     private var map: GoogleMap? = null
     private lateinit var binding: ActivityMapsBinding
@@ -90,6 +93,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
         // Get the current location of the device and set the position of the map.
         getDeviceLocation()
+
+        // Listen for long click events for adding markers
+        map?.setOnMapLongClickListener(this)
     }
 
     /**
@@ -187,6 +193,52 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         } catch (e: SecurityException) {
             Log.e("Exception: %s", e.message, e)
         }
+    }
+
+    override fun onMapLongClick(p0: LatLng) {
+        showAlertDialogForPoint(p0)
+    }
+
+    /**
+     * Display alert that adds marker to map.
+     */
+    private fun showAlertDialogForPoint(point: LatLng) {
+        // inflate message_item.xml view
+        val messageView: View =
+            LayoutInflater.from(this).inflate(R.layout.message_item, null)
+        // Create alert dialog builder
+        val alertDialogBuilder: AlertDialog.Builder = AlertDialog.Builder(this)
+        // set message_item.xml to AlertDialog builder
+        alertDialogBuilder.setView(messageView)
+
+        // Create alert dialog
+        val alertDialog: AlertDialog = alertDialogBuilder.create()
+
+        // Configure dialog button (OK)
+        alertDialog.setButton(DialogInterface.BUTTON_POSITIVE, "OK"
+        ) { _, _ ->
+            // Define color of marker icon
+            val defaultMarker =
+                BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)
+            // Extract content from alert dialog
+            val title = (alertDialog.findViewById(R.id.etTitle) as EditText).text.toString()
+            val snippet = (alertDialog.findViewById(R.id.etSnippet) as EditText).text.toString()
+            // Creates and adds marker to the map
+            map!!.addMarker(
+                MarkerOptions()
+                    .position(point)
+                    .title(title)
+                    .snippet(snippet)
+                    .icon(defaultMarker)
+            )
+        }
+
+        // Configure dialog button (Cancel)
+        alertDialog.setButton(DialogInterface.BUTTON_NEGATIVE, "Cancel",
+            DialogInterface.OnClickListener { dialog, id -> dialog.cancel() })
+
+        // Display the dialog
+        alertDialog.show()
     }
 
     companion object {
