@@ -112,7 +112,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapLon
                     val latlng = LatLng(location.getDouble("latitude"), location.getDouble("longitude"))
                     val locationTitle = location.getString("title") ?: ""
                     val locationDescription = location.getString("description") ?: ""
-                    addMarker(latlng, locationTitle, locationDescription)
+                    displayMarker(latlng, locationTitle, locationDescription)
                 }
             } else {
                 Log.d("getLocation", "Error: $e")
@@ -254,6 +254,18 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapLon
     }
 
     private fun addMarker(point: LatLng, title: String, snippet: String) {
+        displayMarker(point, title, snippet)
+
+        // Add marker to the database
+        val location = ParseObject("Location")
+        location.put("title", title)
+        location.put("description", snippet)
+        location.put("latitude", point.latitude)
+        location.put("longitude", point.longitude)
+        location.saveInBackground()
+    }
+
+    private fun displayMarker(point: LatLng, title:String, snippet: String) {
         // Define color of marker icon
         val defaultMarker =
             BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)
@@ -266,20 +278,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapLon
                 .snippet(snippet)
                 .icon(defaultMarker)
         )
-
-        Log.v("Add Marker", "added marker to map")
-
-        // Add marker to the database
-        val location = ParseObject("Location")
-        Log.v("Add Marker", "Made location parse object")
-        location.put("title", title)
-        Log.v("Add Marker", "Put title")
-        location.put("description", snippet)
-        location.put("latitude", point.latitude)
-        Log.v("Add Marker", "Put latitude")
-        location.put("longitude", point.longitude)
-        location.saveInBackground()
-        Log.v("Add Marker", "Saved in background")
     }
 
     companion object {
