@@ -26,8 +26,8 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.libraries.places.api.Places
 import com.google.android.libraries.places.api.net.PlacesClient
-import com.parse.Parse
 import com.parse.ParseObject
+import com.parse.ParseQuery
 
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapLongClickListener {
@@ -82,10 +82,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapLon
 
         map!!.uiSettings.isZoomControlsEnabled = true
         map!!.uiSettings.isZoomGesturesEnabled = true
-        // Add a marker at UCSD campus
-//         val ucsdCampus = LatLng(32.88, -117.23)
-//         mMap.addMarker(MarkerOptions().position(ucsdCampus).title("Marker in my location"))
-//         mMap.moveCamera(CameraUpdateFactory.newLatLng(ucsdCampus))
 
         // Prompt the user for permission.
         getLocationPermission()
@@ -96,8 +92,32 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapLon
         // Get the current location of the device and set the position of the map.
         getDeviceLocation()
 
+        // Load in marker locations from database
+        loadSavedMarkers()
+
         // Listen for long click events for adding markers
         map?.setOnMapLongClickListener(this)
+    }
+
+    /**
+     * Gets all saved markers from database and adds them to the map.
+     */
+    private fun loadSavedMarkers() {
+        val query = ParseQuery.getQuery<ParseObject>("Location")
+        query.findInBackground { locations, e ->
+            if (e == null) {
+                Log.d("getLocation", "Retrieved " + locations.size + " scores")
+                for (location in locations) {
+                    // Add marker
+                    val latlng = LatLng(location.getDouble("latitude"), location.getDouble("longitude"))
+                    val locationTitle = location.getString("title") ?: ""
+                    val locationDescription = location.getString("description") ?: ""
+                    addMarker(latlng, locationTitle, locationDescription)
+                }
+            } else {
+                Log.d("getLocation", "Error: $e")
+            }
+         }
     }
 
     /**
