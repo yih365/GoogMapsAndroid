@@ -1,4 +1,7 @@
 <resources>
     <string name="app_name">TestMaps</string>
     <string name="title_activity_maps">MapsActivity</string>
+    <string name="back4app_server_url">https://parseapi.back4app.com/</string>
+    <string name="back4app_app_id">Zy5hhdU3YZie09xc65uQNDY4kQO07h7pNiAn7svf</string>
+    <string name="back4app_client_key">BOppT5XZowPRwFsPeCUN4l0ICa7bTWMJH0X8eo5K</string>
 </resources>

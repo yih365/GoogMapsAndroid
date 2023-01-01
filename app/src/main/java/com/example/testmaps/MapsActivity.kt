@@ -26,6 +26,8 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.libraries.places.api.Places
 import com.google.android.libraries.places.api.net.PlacesClient
+import com.parse.Parse
+import com.parse.ParseObject
 
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapLongClickListener {
@@ -217,20 +219,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapLon
         // Configure dialog button (OK)
         alertDialog.setButton(DialogInterface.BUTTON_POSITIVE, "OK"
         ) { _, _ ->
-            // Define color of marker icon
-            val defaultMarker =
-                BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)
             // Extract content from alert dialog
             val title = (alertDialog.findViewById(R.id.etTitle) as EditText).text.toString()
             val snippet = (alertDialog.findViewById(R.id.etSnippet) as EditText).text.toString()
-            // Creates and adds marker to the map
-            map!!.addMarker(
-                MarkerOptions()
-                    .position(point)
-                    .title(title)
-                    .snippet(snippet)
-                    .icon(defaultMarker)
-            )
+            addMarker(point, title, snippet)
         }
 
         // Configure dialog button (Cancel)
@@ -239,6 +231,35 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapLon
 
         // Display the dialog
         alertDialog.show()
+    }
+
+    private fun addMarker(point: LatLng, title: String, snippet: String) {
+        // Define color of marker icon
+        val defaultMarker =
+            BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)
+
+        // Creates and adds marker to the map
+        map!!.addMarker(
+            MarkerOptions()
+                .position(point)
+                .title(title)
+                .snippet(snippet)
+                .icon(defaultMarker)
+        )
+
+        Log.v("Add Marker", "added marker to map")
+
+        // Add marker to the database
+        val location = ParseObject("Location")
+        Log.v("Add Marker", "Made location parse object")
+        location.put("title", title)
+        Log.v("Add Marker", "Put title")
+        location.put("description", snippet)
+        location.put("latitude", point.latitude)
+        Log.v("Add Marker", "Put latitude")
+        location.put("longitude", point.longitude)
+        location.saveInBackground()
+        Log.v("Add Marker", "Saved in background")
     }
 
     companion object {
