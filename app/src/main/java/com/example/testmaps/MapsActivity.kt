@@ -28,6 +28,7 @@ import com.google.android.libraries.places.api.Places
 import com.google.android.libraries.places.api.net.PlacesClient
 import com.parse.ParseObject
 import com.parse.ParseQuery
+import kotlin.math.floor
 
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapLongClickListener {
@@ -48,6 +49,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapLon
     // not granted.
     private val defaultLocation = LatLng(-33.8523341, 151.2106085)
     private var locationPermissionGranted = false
+
+    // User's region code used for finding nearby markers
+    private var regionCode: Number = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -92,9 +96,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapLon
         // Get the current location of the device and set the position of the map.
         getDeviceLocation()
 
-        // Load in marker locations from database
-        loadSavedMarkers()
-
         // Listen for long click events for adding markers
         map?.setOnMapLongClickListener(this)
     }
@@ -104,9 +105,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapLon
      */
     private fun loadSavedMarkers() {
         val query = ParseQuery.getQuery<ParseObject>("Location")
+        query.whereEqualTo("region", regionCode)
+        Log.d("loadSavedMarker", "regionCode = $regionCode")
         query.findInBackground { locations, e ->
             if (e == null) {
-                Log.d("getLocation", "Retrieved " + locations.size + " scores")
                 for (location in locations) {
                     // Add marker
                     val latlng = LatLng(location.getDouble("latitude"), location.getDouble("longitude"))
@@ -136,10 +138,15 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapLon
                     if (task.isSuccessful) {
                         // Set the map's camera position to the current location of the device.
                         val currentLocation = task.result
+                        regionCode = floor((currentLocation.latitude+90)/10)*36 + floor(((currentLocation.longitude)+180)/10)
+                        Log.d("findRegionCode", "region code is $regionCode")
                         if (currentLocation != null) {
                             map?.moveCamera(CameraUpdateFactory.newLatLngZoom(
                                 LatLng(currentLocation.latitude,
                                     currentLocation.longitude), DEFAULT_ZOOM.toFloat()))
+
+                            // Load in marker locations from database
+                            loadSavedMarkers()
                         }
                     } else {
                         Log.d(TAG, "Current location is null. Using defaults.")
@@ -255,13 +262,14 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapLon
 
     private fun addMarker(point: LatLng, title: String, snippet: String) {
         displayMarker(point, title, snippet)
-
+        val regionC = floor((point.latitude+90)/10)*36 + floor(((point.longitude)+180)/10)
         // Add marker to the database
         val location = ParseObject("Location")
         location.put("title", title)
         location.put("description", snippet)
         location.put("latitude", point.latitude)
         location.put("longitude", point.longitude)
+        location.put("region", regionC)
         location.saveInBackground()
     }
 
